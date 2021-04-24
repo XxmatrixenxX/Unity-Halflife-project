@@ -11,11 +11,13 @@ public class MyPlayer : MonoBehaviourPun, IPunObservable
     public Camera camera;
     public GameObject healthBar;
     public Slider slider;
+    public Slider slidercopy;
     public float health = 1f;
 
     void UpdateHealthBar()
     {
         slider.value = health;
+        slidercopy.value = health;
         //Vector3 oldScale = healthBar.transform.localScale;
         //healthBar.transform.localScale = new Vector3(health, oldScale.y, oldScale.z);
     }
