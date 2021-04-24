@@ -2,10 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Photon.Pun;
 public class CharacterView : MonoBehaviour
 {
-
+    private PhotonView myPV;
     public float movemenSensity = 100f;
 
     public Transform player;
@@ -15,19 +15,23 @@ public class CharacterView : MonoBehaviour
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
+        myPV = transform.parent.gameObject.GetComponent<PhotonView>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        float mouseX = Input.GetAxis("Mouse X") * movemenSensity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * movemenSensity * Time.deltaTime;
+        if (myPV.IsMine)
+        {
+            float mouseX = Input.GetAxis("Mouse X") * movemenSensity * Time.deltaTime;
+            float mouseY = Input.GetAxis("Mouse Y") * movemenSensity * Time.deltaTime;
 
-        XRotation -= mouseY;
-        XRotation = Mathf.Clamp(XRotation, -90f, 44f);
+            XRotation -= mouseY;
+            XRotation = Mathf.Clamp(XRotation, -90f, 44f);
 
-        transform.localRotation = Quaternion.Euler(XRotation, 0f, 0f);
-        player.Rotate(Vector3.up * mouseX);
+            transform.localRotation = Quaternion.Euler(XRotation, 0f, 0f);
+            player.Rotate(Vector3.up * mouseX);
+        }
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit)

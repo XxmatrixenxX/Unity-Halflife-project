@@ -2,18 +2,22 @@
 using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityStandardAssets.Characters.FirstPerson;
 
 public class MyPlayer : MonoBehaviourPun, IPunObservable
 {
+    private PhotonView myPV;
     public Camera camera;
     public GameObject healthBar;
+    public Slider slider;
     public float health = 1f;
 
     void UpdateHealthBar()
     {
-        Vector3 oldScale = healthBar.transform.localScale;
-        healthBar.transform.localScale = new Vector3(health, oldScale.y, oldScale.z);
+        slider.value = health;
+        //Vector3 oldScale = healthBar.transform.localScale;
+        //healthBar.transform.localScale = new Vector3(health, oldScale.y, oldScale.z);
     }
 
     public void Hit()
@@ -36,7 +40,8 @@ public class MyPlayer : MonoBehaviourPun, IPunObservable
     // Start is called before the first frame update
     void Start()
     {
-        if (photonView.IsMine)
+        myPV = GetComponent<PhotonView>();
+        if (myPV.IsMine)
         {
             healthBar.layer = LayerMask.NameToLayer("Character");
         }
@@ -44,7 +49,7 @@ public class MyPlayer : MonoBehaviourPun, IPunObservable
         {
             camera.enabled = false;
             camera.gameObject.GetComponent<AudioListener>().enabled = false;
-            gameObject.GetComponent<FirstPersonController>().enabled = false;
+            gameObject.GetComponent<EthanControls>().enabled = false;
         }
     }
 
@@ -52,7 +57,7 @@ public class MyPlayer : MonoBehaviourPun, IPunObservable
     void Update()
     {
         UpdateHealthBar();
-        if (photonView.IsMine)
+        if (myPV.IsMine)
         {
             if (Input.GetKeyDown(KeyCode.U))
             {
@@ -61,8 +66,8 @@ public class MyPlayer : MonoBehaviourPun, IPunObservable
 
             if (Input.GetKeyDown(KeyCode.I))
             {
-                gameObject.GetComponent<FirstPersonController>().enabled =
-                    !gameObject.GetComponent<FirstPersonController>().enabled;
+                gameObject.GetComponent<EthanControls>().enabled =
+                    !gameObject.GetComponent<EthanControls>().enabled;
             }
         }
     }

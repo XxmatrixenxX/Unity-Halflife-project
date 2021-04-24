@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Photon.Pun;
 public class Grapple : MonoBehaviour
 {
 
@@ -14,10 +14,12 @@ public class Grapple : MonoBehaviour
     private RopeGun hook;
     private bool pulling;
     private Rigidbody rigid;
+    private PhotonView myPV;
 
     // Start is called before the first frame update
     void Start()
     {
+        myPV = GetComponent<PhotonView>();
         rigid = GetComponent<Rigidbody>();
         pulling = false;
     }
@@ -25,27 +27,31 @@ public class Grapple : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (hook == null && Input.GetMouseButtonDown(0))
+        if (myPV.IsMine)
         {
-            pulling = false;
-            hook = Instantiate(hookPrefab, shootTransform.position, Quaternion.identity).GetComponent<RopeGun>();
-            hook.Initialize(this, shootTransform);
-            StartCoroutine(DestoryHookAfterLifetime());
-        }
-        else if (hook != null && Input.GetMouseButtonDown(1))
-        {
-            DestroyHook();
-        }
+            if (hook == null && Input.GetMouseButtonDown(0))
+            {
+                pulling = false;
+                hook = Instantiate(hookPrefab, shootTransform.position, Quaternion.identity).GetComponent<RopeGun>();
+                hook.Initialize(this, shootTransform);
+                StartCoroutine(DestoryHookAfterLifetime());
+            }
+            else if (hook != null && Input.GetMouseButtonDown(1))
+            {
+                DestroyHook();
+            }
 
-        if (!pulling || hook == null) return;
-        
-        if (Vector3.Distance(transform.position, hook.transform.position) <= stopDistance)
-        {
-            DestroyHook();
-        }
-        else
-        {
-            rigid.AddForce((hook.transform.position - transform.position).normalized * pullSpeed, ForceMode.VelocityChange);
+            if (!pulling || hook == null) return;
+
+            if (Vector3.Distance(transform.position, hook.transform.position) <= stopDistance)
+            {
+                DestroyHook();
+            }
+            else
+            {
+                rigid.AddForce((hook.transform.position - transform.position).normalized * pullSpeed,
+                    ForceMode.VelocityChange);
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using Photon.Pun;
 using UnityEngine;
 
@@ -10,7 +11,15 @@ public class MyNetworkManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        PhotonNetwork.Instantiate(playerPrefab.name, new Vector3(1,1,96),Quaternion.identity);
+        if (PhotonNetwork.IsMasterClient)
+        {
+            PhotonNetwork.Instantiate(playerPrefab.name , new Vector3(1,1,96),Quaternion.identity);
+        }
+        else
+        {
+            PhotonNetwork.Instantiate(playerPrefab.name, new Vector3(4,1,96),Quaternion.identity);
+        }
+        //PhotonNetwork.Instantiate(playerPrefab.name, new Vector3(1,1,96),Quaternion.identity);
     }
 }
 

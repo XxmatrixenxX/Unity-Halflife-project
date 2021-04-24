@@ -4,9 +4,12 @@ using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
 using Vector3 = UnityEngine.Vector3;
+using Photon.Pun;
+using Photon.Realtime;
 
-public class EthanControls :  MonoBehaviour
+public class EthanControls :  MonoBehaviourPunCallbacks
 {
+    private PhotonView myPV;
     // Start is called before the first frame update
     Animator animator;
     public GameObject healthBar;
@@ -51,7 +54,14 @@ public class EthanControls :  MonoBehaviour
     
     void Start()
     {
+        myPV = GetComponent<PhotonView>();
         animator = GetComponent<Animator>();
+        if (myPV.IsMine)
+        {
+            transform.GetChild(0).gameObject.layer = LayerMask.NameToLayer("YouCantSeeYourSelf");
+            transform.GetChild(1).gameObject.layer = LayerMask.NameToLayer("YouCantSeeYourSelf");
+            transform.GetChild(2).gameObject.layer = LayerMask.NameToLayer("YouCantSeeYourSelf");
+        }
         /*hasAirjump = false;
         dashing = false;
         climbWall = false;
@@ -63,113 +73,119 @@ public class EthanControls :  MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        isOnFloor = Physics.CheckSphere(floorCheck.position, floorDistance, floorMask);
-
-        climbWall = Physics.CheckSphere(wallCheck.position, wallDistance, climbWallMask);
-        
-        walljump = Physics.CheckSphere(wallCheck.position, wallDistance, floorMask);
-        
-        lostWall = !Physics.CheckSphere(transform.position, 1f, floorMask);
-        
-
-        //walljump Code
-        if (walljump &! allreadyHold)
+        if (myPV.IsMine)
         {
-            
-            hasAirjump = true;
-            wallgrab = true;
-            allreadyHold = true;
-            speedVelocity.y = 0;
-            if (isOnFloor)
+            isOnFloor = Physics.CheckSphere(floorCheck.position, floorDistance, floorMask);
+
+            climbWall = Physics.CheckSphere(wallCheck.position, wallDistance, climbWallMask);
+
+            walljump = Physics.CheckSphere(wallCheck.position, wallDistance, floorMask);
+
+            lostWall = !Physics.CheckSphere(transform.position, 1f, floorMask);
+
+
+            //walljump Code
+            if (walljump & !allreadyHold)
             {
-                Invoke("GrabWall",0.05f);
+
+                hasAirjump = true;
+                wallgrab = true;
+                allreadyHold = true;
+                speedVelocity.y = 0;
+                if (isOnFloor)
+                {
+                    Invoke("GrabWall", 0.05f);
+                }
+
+                Invoke("GrabWall", 1f);
+
             }
-            Invoke("GrabWall", 1f);
 
-        }
+            if (lostWall)
+            {
+                wallgrab = false;
+            }
 
-        if (lostWall)
-        {
-            wallgrab = false;
-        }
+            //code to keep the gravity low
+            if (isOnFloor && speedVelocity.y < 0 & !climbWall)
+            {
+                animator.SetBool("bottom", true);
+                speedVelocity.y = -3;
+                allreadyHold = false;
+                wallgrab = false;
+            }
 
-        //code to keep the gravity low
-        if (isOnFloor && speedVelocity.y < 0 &! climbWall)
-        { 
-            animator.SetBool("bottom", true);
-          speedVelocity.y = -3;
-          allreadyHold = false;
-          wallgrab = false;
-        }
-        
-        //inputs
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
+            //inputs
+            float x = Input.GetAxis("Horizontal");
+            float z = Input.GetAxis("Vertical");
 
-        //for animations of walking
-        if (z < 0)
-        {
-            animator.SetFloat("walkSpeed", -1.0f);
-        }
-        else
-        {
-            animator.SetFloat("walkSpeed", 1.0f);
-        }
-        animator.SetFloat("Forward", z);
-        animator.SetFloat("Turn", x);
-        
-        //movement left and right
-        if (!dashing && !walljumping && !pullingRope)
-        {
-            movement = transform.right * x + transform.forward * z;
-        }
-        //movement disabled while beeing pulled
-        if (!pullingRope)
-        {
+            //for animations of walking
+            if (z < 0)
+            {
+                animator.SetFloat("walkSpeed", -1.0f);
+            }
+            else
+            {
+                animator.SetFloat("walkSpeed", 1.0f);
+            }
+
+            animator.SetFloat("Forward", z);
+            animator.SetFloat("Turn", x);
+
+            //movement left and right
+            if (!dashing && !walljumping && !pullingRope)
+            {
+                movement = transform.right * x + transform.forward * z;
+            }
+
+            //movement disabled while beeing pulled
+            if (!pullingRope)
+            {
+                if (!climbWall)
+                {
+                    playerController.Move(movement * speedfactor * Time.deltaTime);
+                }
+            }
+            //here is where pulling is done
+            else
+            {
+                playerController.Move(movement * 20f * Time.deltaTime);
+                RopePulling(objectPos);
+                if (Vector3.Distance(objectPos, floorCheck.position) < 2f)
+                {
+                    Ropegun.GetComponent<GrapplingHook>().CutRope();
+                    StopPulling();
+                }
+            }
+
+            //gravity scripit
+            if (!climbWall && !wallgrab && !pullingRope)
+            {
+                speedVelocity.y += gravity * Time.deltaTime;
+            }
+
             if (!climbWall)
             {
-                playerController.Move(movement * speedfactor * Time.deltaTime);
+                playerController.Move(speedVelocity * Time.deltaTime);
             }
-        }
-        //here is where pulling is done
-        else
-        {
-            playerController.Move(movement * 20f * Time.deltaTime);
-            RopePulling(objectPos);
-            if (Vector3.Distance(objectPos, floorCheck.position) < 2f)
+
+            //jumping
+            if (Input.GetButtonDown("Jump"))
             {
-                Ropegun.GetComponent<GrapplingHook>().CutRope();
-                StopPulling();
+                Jump(z, x);
             }
-        }
 
-        //gravity scripit
-        if (!climbWall && !wallgrab && !pullingRope)
-        {
-            speedVelocity.y += gravity * Time.deltaTime;
-        }
+            //dashing
+            if (Input.GetKeyDown(KeyCode.LeftControl) & !dashing & !dashcooldown)
+            {
+                Dash(z, x);
+            }
 
-        if (!climbWall)
-        {
-            playerController.Move(speedVelocity * Time.deltaTime);
-        }
-
-        //jumping
-        if (Input.GetButtonDown("Jump"))
-        {
-            Jump(z, x);
-        }
-        
-        //dashing
-        if (Input.GetKeyDown(KeyCode.LeftControl) &! dashing &! dashcooldown)
-        {
-           Dash(z, x);
-        }
-
-        //while facing a climbable wall and pressing forwards you will climb upwards results in +y 
-        if (climbWall)
-        {
-            climbing(z);
+            //while facing a climbable wall and pressing forwards you will climb upwards results in +y 
+            if (climbWall)
+            {
+                climbing(z);
+            }
         }
     }
 
@@ -281,5 +297,5 @@ public class EthanControls :  MonoBehaviour
     {
         pullingRope = false;
     }
-    
+
 }
