@@ -12,7 +12,7 @@ public class EthanControls :  MonoBehaviourPunCallbacks
     private PhotonView myPV;
     // Start is called before the first frame update
     Animator animator;
-    public GameObject healthBar;
+   // public GameObject healthBar;
 
     public float speedfactor = 10f;
     public float gravity = -9.81f;

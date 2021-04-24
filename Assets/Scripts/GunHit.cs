@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class GunHit : MonoBehaviour
 {
-   public float health = 50f;
+   //public float health = 50f;
    private PhotonView myPV;
    
    void Start()
@@ -16,11 +16,11 @@ public class GunHit : MonoBehaviour
      
    }
 
-   void Die()
+   public void Die()
    { 
       transform.GetComponent<EthanControls>().StopPulling();
      transform.position = new Vector3 (1,1,96);
-     health = 50f;
+     //health = 50f;
      transform.GetComponent<MyPlayer>().health = 1f;
      
    }
@@ -33,10 +33,10 @@ public class GunHit : MonoBehaviour
          return;
       }
       transform.GetComponent<MyPlayer>().Hit();
-      health -= damage;
-      if (health <= 0f)
-      {
-         Die();
-      }
+      //health -= damage;
+      //if (health <= 0f)
+      //{
+         //Die();
+      //}
    }
 }

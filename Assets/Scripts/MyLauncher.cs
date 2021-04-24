@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design.Serialization;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
@@ -34,4 +35,5 @@ public class MyLauncher : MonoBehaviourPunCallbacks
         Debug.Log("Room joined");
         PhotonNetwork.LoadLevel("LevelToJoin");
     }
+
 }

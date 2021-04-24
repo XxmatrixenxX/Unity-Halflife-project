@@ -11,13 +11,11 @@ public class MyPlayer : MonoBehaviourPun, IPunObservable
     public Camera camera;
     public GameObject healthBar;
     public Slider slider;
-    public Slider slidercopy;
     public float health = 1f;
 
     void UpdateHealthBar()
     {
         slider.value = health;
-        slidercopy.value = health;
         //Vector3 oldScale = healthBar.transform.localScale;
         //healthBar.transform.localScale = new Vector3(health, oldScale.y, oldScale.z);
     }
@@ -34,6 +32,7 @@ public class MyPlayer : MonoBehaviourPun, IPunObservable
         {
             health = 0f;
             Debug.Log("Dead");
+            transform.GetComponent<GunHit>().Die();
         }
 
         UpdateHealthBar();
@@ -59,7 +58,7 @@ public class MyPlayer : MonoBehaviourPun, IPunObservable
     void Update()
     {
         UpdateHealthBar();
-        if (myPV.IsMine)
+        /*if (myPV.IsMine)
         {
             if (Input.GetKeyDown(KeyCode.U))
             {
@@ -71,7 +70,7 @@ public class MyPlayer : MonoBehaviourPun, IPunObservable
                 gameObject.GetComponent<EthanControls>().enabled =
                     !gameObject.GetComponent<EthanControls>().enabled;
             }
-        }
+        }*/
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
